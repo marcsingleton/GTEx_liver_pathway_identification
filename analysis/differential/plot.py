@@ -3,8 +3,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-q_BH = 0.01  # BH false discovery rate
+from src.constants import q_BH
 
 df_anova = pd.read_table('out/unpooled/anova.tsv')
 df_ttest = pd.read_table('out/pooled/ttest.tsv')
