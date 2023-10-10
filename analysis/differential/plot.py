@@ -8,6 +8,7 @@ q_BH = 0.01  # BH false discovery rate
 
 df_anova = pd.read_table('out/unpooled/anova.tsv')
 df_ttest = pd.read_table('out/pooled/ttest.tsv')
+df_corr = pd.read_table('out/pooled/corr.tsv', header=[0, 1], index_col=[0, 1])
 
 prefix = 'out/unpooled/'
 
@@ -104,4 +105,14 @@ ax.set_xlabel('$p$-value rank')
 ax.set_ylabel('$p$-value')
 ax.legend()
 fig.savefig(f'{prefix}/line|pvalue-rank|BH-rank.png')
+plt.close()
+
+# Histogram of correlations
+array = df_corr.to_numpy().ravel()
+
+fig, ax = plt.subplots()
+ax.hist(array, bins=100)
+ax.set_xlabel('Correlation coefficient')
+ax.set_ylabel('Number of gene pairs')
+fig.savefig(f'{prefix}/hist|pair_number-corr.png')
 plt.close()
