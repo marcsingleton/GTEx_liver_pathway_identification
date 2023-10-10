@@ -1,3 +1,3 @@
 """Project level constants for analyses."""
 
-q_BH = 0.01  # BH false discovery rate
+q_BH = 0.001  # BH false discovery rate
