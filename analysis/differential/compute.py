@@ -112,3 +112,9 @@ result = ttest_ind(sample_a, sample_b, axis=0, equal_var=False, alternative='gre
 df_ttest = pd.DataFrame({'tstat': result.statistic, 'pval': result.pvalue}, index=df_read.columns)
 df_ttest['BH_result'] = benjamini_hochberg(df_ttest['pval'], q_BH)
 df_ttest.to_csv(f'{prefix}/ttest.tsv', sep='\t')
+
+# Subset to liver genes and calculate correlations
+genes_liver = df_ttest[df_ttest['BH_result']].index.get_level_values('Name')
+df_liver = df_read[genes_liver]
+df_corr = df_liver.corr()
+df_corr.to_csv(f'{prefix}/corr.tsv', sep='\t')
