@@ -117,7 +117,7 @@ for ax, label, array in zip(axs.ravel(), labels, arrays):
     offset_text.set_fontsize(6)
     offset_text.set_position((-0.1, 1))
     ax.set_title(label, fontsize=8)
-fig.supxlabel('Z-score of reads to gene in tissue and gene group', fontsize=10)
+fig.supxlabel('$z$-score of reads to gene in tissue and gene group', fontsize=10)
 fig.supylabel('Number of genes', fontsize=10)
 fig.savefig(f'{prefix}/hist|gene_number-zscore.png')
 plt.close()
