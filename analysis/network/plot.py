@@ -3,8 +3,11 @@
 import os
 
 import matplotlib.pyplot as plt
+import numpy as np
 import networkx as nx
 import pandas as pd
+from matplotlib import colors
+from matplotlib import cm
 
 data_path_corr = '../differential/out/pooled/corr.tsv'
 data_path_graph = 'out/graph.tsv'
@@ -58,8 +61,10 @@ plt.close()
 # Plot largest n components
 n = 10
 fig_width = 4.8
-margin_data = 0.01
-cmap = plt.colormaps['plasma_r']
+margin_data = 0.05
+cmap_base = plt.colormaps['plasma_r']
+cmap = colors.ListedColormap(cmap_base(np.linspace(0.25, 1, 256)))
+node_color = '#444444'
 
 prefix = 'out/networks/'
 if not os.path.exists(prefix):
@@ -98,12 +103,27 @@ for rank, component_id in enumerate(component_ids):
     fig_height = fig_width * ylen / xlen
     figsize = (fig_width, fig_height)
 
+    # Draw graph labeled by edge
+    edges = sorted(graph_nx.edges, key=lambda x: graph_nx.edges[x]['weight'])
+    ws = [w for _, _, w in graph_nx.edges.data('weight')]
+    wmin, wmax = min(ws), max(ws)
+    wlen = wmax - wmin
+
     # Make plot
     fig, ax = plt.subplots(layout='constrained')
-    nx.draw_networkx_edges(graph_nx, positions, ax=ax, width=0.75, edge_color='black', alpha=0.1)
-    nx.draw_networkx_nodes(graph_nx, positions, ax=ax, node_size=12, node_color='C0', linewidths=0)
+    nx.draw_networkx_edges(graph_nx, positions, ax=ax, width=0.75, edge_color=ws, edge_cmap=cmap)
+    nx.draw_networkx_nodes(graph_nx, positions, ax=ax, node_size=12, node_color=node_color, linewidths=0)
+
     ax.set_xlim((xmin - margin_data * xlen, xmax + margin_data * xlen))  # Set manually because draw_networkx_edges hard codes the data limits with 5% padding
     ax.set_ylim((ymin - margin_data * ylen, ymax + margin_data * ylen))
     ax.set_axis_off()
+
+    ticks = [wmin + wlen / 4, wmax - wlen / 4]
+    ticklabels = [f'{tick:.2}' for tick in ticks]
+    cax = ax.inset_axes((0.8, 0.01, 0.15, 0.015))
+    cbar = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(wmin, wmax), cmap=cmap), cax=cax, orientation='horizontal')
+    cbar.ax.set_xticks(ticks, ticklabels, fontsize=6)
+    cbar.outline.set_visible(False)
+
     fig.savefig(f'{prefix}/{rank:02}|{component_id}.png')
     plt.close()
