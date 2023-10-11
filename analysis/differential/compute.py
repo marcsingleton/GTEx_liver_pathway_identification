@@ -21,7 +21,7 @@ import re
 import numpy as np
 import pandas as pd
 from scipy.stats import f_oneway, ttest_ind
-from src.constants import q_BH
+from src.constants import tissue_regex, q_BH
 
 
 def benjamini_hochberg(pvalues, q):
@@ -55,7 +55,6 @@ def benjamini_hochberg(pvalues, q):
 
 data_path_read = '../../data/GTEx/bulk_count/'
 data_path_gene = '../protein_coding/out/genes.tsv'
-tissue_regex = r'v8_([a-z_]+)\.gct\.gz'
 
 # Load gene metadata
 df_gene = pd.read_table(data_path_gene)

@@ -12,10 +12,10 @@ import re
 import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.decomposition import PCA
+from src.constants import tissue_regex
 
 data_path_read = '../../data/GTEx/bulk_count/'
 data_path_gene = '../protein_coding/out/genes.tsv'
-tissue_regex = r'v8_([a-z_]+)\.gct\.gz'
 
 # Load gene metadata
 df_gene = pd.read_table(data_path_gene)
