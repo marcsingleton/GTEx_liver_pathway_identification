@@ -2,6 +2,7 @@
 
 import os
 
+import numpy as np
 import pandas as pd
 
 
@@ -38,20 +39,42 @@ def get_connected_components(graph):
     return components
 
 
-cutoff = 0.75
+top_N = 4
 
 df_corr = pd.read_table('../differential/out/pooled/corr.tsv', header=[0, 1], index_col=[0, 1])
 gene_ids = df_corr.index.get_level_values('Name')
 array = df_corr.to_numpy()
 
+# Make sets of top correlations for each gene
+inf_diag = np.copy(array)
+np.fill_diagonal(inf_diag, -np.inf)
+array_sorted = -np.sort(-inf_diag, axis=1)
+index_sorted = np.argsort(-inf_diag, axis=1)
+
+top_genes_map = {}
+for i in range(len(array_sorted)):
+    r_cutoff = array_sorted[i, top_N-1]
+    gene_id1 = gene_ids[i]
+    top_genes = set()
+    for j in range(len(array_sorted)):
+        r = array_sorted[i, j]
+        if r >= r_cutoff:
+            index = index_sorted[i, j]
+            gene_id2 = gene_ids[index]
+            top_genes.add(gene_id2)
+        else:
+            break
+    top_genes_map[gene_id1] = top_genes
+
 # Construct graph
 graph = {gene_id: [] for gene_id in gene_ids}
 for i in range(len(array)):
     gene_id1 = gene_ids[i]
+    top_genes1 = top_genes_map[gene_id1]
     for j in range(i+1, len(array)):
         gene_id2 = gene_ids[j]
-        r = array[i, j]
-        if r >= cutoff:
+        top_genes2 = top_genes_map[gene_id2]
+        if gene_id1 in top_genes2 and gene_id2 in top_genes1:
             graph[gene_id1].append(gene_id2)
             graph[gene_id2].append(gene_id1)
 
