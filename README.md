@@ -18,11 +18,11 @@ The overall approach is to first identify differentially expressed genes in the 
 candidate pathways by constructing networks of co-expressed genes. Finally, term enrichment analysis of these networks
 can generate hypotheses of their biological function. In more detail:
 
-1. Extract protein-coding gene IDs from GTF file
-2. Exploratory data analysis
-3. Identification of differentially expressed genes in the liver
-4. Construction of networks of differentially expressed genes
-5. Term enrichment analysis
+1. Data cleaning and exploratory analysis
+2. Identification of differentially expressed genes in the liver
+3. Construction of the co-expression network of differentially expressed genes
+4. Identification of gene modules in network
+5. Term enrichment analysis of genes in modules
 
 ## Project Organization
 
