@@ -10,6 +10,11 @@ data_path_corr = '../differential/out/pooled/corr.tsv'
 data_path_graph = 'out/graph.tsv'
 data_path_components = 'out/components.tsv'
 
+df_corr = pd.read_table(data_path_corr, header=[0, 1], index_col=[0, 1])
+gene_ids = df_corr.index.get_level_values('Name')
+indexes = {gene_id: index for index, gene_id in enumerate(gene_ids)}
+array = df_corr.to_numpy()
+
 # Load graph
 graph = {}
 with open(data_path_graph) as file:
@@ -46,27 +51,33 @@ ax.bar(counts.index, counts.values, width=1)
 ax.set_xlabel('Number of genes in component')
 ax.set_ylabel('Number of components')
 fig.savefig(f'{prefix}/bar|component_number-gene_number.png')
+ax.set_yscale('log')
+fig.savefig(f'{prefix}/bar|component_number-gene_number|log.png')
 plt.close()
 
 # Plot largest n components
 n = 10
+fig_width = 4.8
 margin_data = 0.01
+cmap = plt.colormaps['plasma_r']
 
 prefix = 'out/networks/'
 if not os.path.exists(prefix):
     os.makedirs(prefix)
 
 component_ids = df.sort_values(by='gene_num', ascending=False, ignore_index=True).loc[:n, 'component_id']
-for component_id in component_ids:
+for rank, component_id in enumerate(component_ids):
     component = components[component_id]
 
     # Construct graph
     graph_nx = nx.Graph()
-    for node in component:
-        graph_nx.add_node(node)
-        for adjacent in graph[node]:
-            if (node, adjacent) not in graph_nx.edges:
-                graph_nx.add_edge(node, adjacent)
+    for node1 in component:
+        graph_nx.add_node(node1)
+        for node2 in graph[node1]:
+            if (node1, node2) not in graph_nx.edges:
+                index1 = indexes[node1]
+                index2 = indexes[node2]
+                graph_nx.add_edge(node1, node2, weight=array[index1, index2])
 
     # Get positions and axes limits
     positions = nx.kamada_kawai_layout(graph_nx)
@@ -77,13 +88,22 @@ for component_id in component_ids:
     ymin, ymax = min(ys), max(ys)
     ylen = ymax - ymin
 
+    # Rotate positions
+    if xlen / ylen < 1:  # Make width longer side
+        xmin, xmax, ymin, ymax = ymin, ymax, -xmax, -xmin
+        xlen, ylen = ylen, xlen
+        positions = {node: (y, -x) for node, (x, y) in positions.items()}
+
+    # Adjust dimensions so aspect ratio is 1:1
+    fig_height = fig_width * ylen / xlen
+    figsize = (fig_width, fig_height)
+
     # Make plot
     fig, ax = plt.subplots(layout='constrained')
-    nx.draw_networkx_edges(graph_nx, positions, ax=ax, width=0.5, edge_color='black', alpha=0.1)
-    nx.draw_networkx_nodes(graph_nx, positions, ax=ax, node_size=4, node_color='C0', linewidths=0)
+    nx.draw_networkx_edges(graph_nx, positions, ax=ax, width=0.75, edge_color='black', alpha=0.1)
+    nx.draw_networkx_nodes(graph_nx, positions, ax=ax, node_size=12, node_color='C0', linewidths=0)
     ax.set_xlim((xmin - margin_data * xlen, xmax + margin_data * xlen))  # Set manually because draw_networkx_edges hard codes the data limits with 5% padding
     ax.set_ylim((ymin - margin_data * ylen, ymax + margin_data * ylen))
-    ax.set_aspect('equal')
     ax.set_axis_off()
-    fig.savefig(f'{prefix}/{component_id}.png')
+    fig.savefig(f'{prefix}/{rank:02}|{component_id}.png')
     plt.close()
