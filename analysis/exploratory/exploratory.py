@@ -91,7 +91,7 @@ fig.savefig(f'{prefix}/bar|donor_number-tissue.png')
 plt.close()
 
 # Violin plot of reads by tissue
-groups = [(label, df.to_numpy()) for label, df in df.sum(axis=1).groupby(level='Tissue')]
+groups = [(label, df.to_numpy()) for label, df in df_read.sum(axis=1).groupby(level='Tissue')]
 labels, arrays = list(zip(*groups))
 positions = list(range(len(groups)))
 
