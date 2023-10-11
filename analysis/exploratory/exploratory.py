@@ -102,13 +102,13 @@ ax.set_ylabel('Number of reads in sample')
 fig.savefig(f'{prefix}/violin|reads-tissue.png')
 plt.close()
 
-# Violin plot of gene count z-scores by tissue
+# Histogram plot of gene count z-scores by tissue
 eps = 1E-6  # Use a small epsilon for the denominator to prevent division by zero for constant genes
 zscore = df_read.groupby(level='Tissue').transform(lambda x: (x - x.mean()) / (x.std() + eps))
 groups = [(label, df.to_numpy().ravel()) for label, df in zscore.groupby(level='Tissue')]
 labels, arrays = list(zip(*groups))
 
-fig, axs = plt.subplots(3, len(groups) // 3, figsize=(8, 8), layout='constrained')
+fig, axs = plt.subplots(2, len(groups) // 2, figsize=(12.8, 4.8), layout='constrained')
 for ax, label, array in zip(axs.ravel(), labels, arrays):
     ax.hist(array, bins=100)
     ax.tick_params(labelsize=6)
