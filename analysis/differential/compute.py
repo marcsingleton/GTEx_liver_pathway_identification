@@ -113,6 +113,6 @@ df_ttest.to_csv(f'{prefix}/ttest.tsv', sep='\t')
 
 # Subset to liver genes and calculate correlations
 genes_liver = df_ttest[df_ttest['BH_result']].index.get_level_values('Name')
-df_liver = df_read[genes_liver]
+df_liver = df_read.loc[df_read.index.get_level_values('Tissue') == 'liver', genes_liver]
 df_corr = df_liver.corr()
 df_corr.to_csv(f'{prefix}/corr.tsv', sep='\t')
