@@ -3,11 +3,11 @@
 import os
 
 import matplotlib.pyplot as plt
-import numpy as np
 import networkx as nx
 import pandas as pd
-from matplotlib import colors
 from matplotlib import cm
+from matplotlib import colors
+from matplotlib import ticker
 
 data_path_corr = '../differential/out/pooled/corr.tsv'
 data_path_graph = 'out/graph.tsv'
@@ -58,13 +58,17 @@ ax.set_yscale('log')
 fig.savefig(f'{prefix}/bar|component_number-gene_number|log.png')
 plt.close()
 
-# Plot largest n components
+# Plot n largest components
 n = 10
 fig_width = 4.8
-margin_data = 0.05
+margin_data = 0.01
 cmap_base = plt.colormaps['plasma_r']
-cmap = colors.ListedColormap(cmap_base(np.linspace(0.25, 1, 256)))
+cmap = colors.ListedColormap(cmap_base.colors[int(0.25*len(cmap_base.colors)):])  # Trim lower 25% of colors
 node_color = '#444444'
+node_slope = 1000
+node_intercept = 1
+edge_slope = 10
+edge_intercept = 0.75
 
 prefix = 'out/networks/'
 if not os.path.exists(prefix):
@@ -99,31 +103,29 @@ for rank, component_id in enumerate(component_ids):
         xlen, ylen = ylen, xlen
         positions = {node: (y, -x) for node, (x, y) in positions.items()}
 
-    # Adjust dimensions so aspect ratio is 1:1
-    fig_height = fig_width * ylen / xlen
-    figsize = (fig_width, fig_height)
-
-    # Draw graph labeled by edge
-    edges = sorted(graph_nx.edges, key=lambda x: graph_nx.edges[x]['weight'])
+    # Some formatting for node size and edges
+    node_size = node_slope * xlen * ylen / len(graph_nx) + node_intercept  # Node size is inversely proportional to node density
+    edge_width = edge_slope * xlen * ylen / len(graph_nx) + edge_intercept
     ws = [w for _, _, w in graph_nx.edges.data('weight')]
     wmin, wmax = min(ws), max(ws)
-    wlen = wmax - wmin
 
     # Make plot
-    fig, ax = plt.subplots(layout='constrained')
-    nx.draw_networkx_edges(graph_nx, positions, ax=ax, width=0.75, edge_color=ws, edge_cmap=cmap)
-    nx.draw_networkx_nodes(graph_nx, positions, ax=ax, node_size=12, node_color=node_color, linewidths=0)
+    fig = plt.figure()
+    ax = fig.add_axes((0, 0.075, 1, 0.925))
+    nx.draw_networkx_edges(graph_nx, positions, ax=ax, width=edge_width, edge_color=ws, edge_cmap=cmap)
+    nx.draw_networkx_nodes(graph_nx, positions, ax=ax, node_size=node_size, node_color=node_color, linewidths=0)
 
     ax.set_xlim((xmin - margin_data * xlen, xmax + margin_data * xlen))  # Set manually because draw_networkx_edges hard codes the data limits with 5% padding
     ax.set_ylim((ymin - margin_data * ylen, ymax + margin_data * ylen))
+    ax.set_aspect('equal')
     ax.set_axis_off()
 
-    ticks = [wmin + wlen / 4, wmax - wlen / 4]
-    ticklabels = [f'{tick:.2}' for tick in ticks]
-    cax = ax.inset_axes((0.8, 0.01, 0.15, 0.015))
-    cbar = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(wmin, wmax), cmap=cmap), cax=cax, orientation='horizontal')
-    cbar.ax.set_xticks(ticks, ticklabels, fontsize=6)
-    cbar.outline.set_visible(False)
+    cax = fig.add_axes((0.8, 0.05, 0.15, 0.015))
+    cb = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(wmin, wmax), cmap=cmap),
+                      cax=cax, orientation='horizontal')
+    cb.ax.xaxis.set_major_locator(ticker.LinearLocator(2))
+    cb.ax.xaxis.set_major_formatter(ticker.StrMethodFormatter('{x:.2}'))
+    cb.outline.set_visible(False)
 
     fig.savefig(f'{prefix}/{rank:02}|{component_id}.png')
     plt.close()
