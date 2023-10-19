@@ -61,7 +61,7 @@ plt.close()
 # Plot n largest components
 n = 10
 fig_width = 4.8
-margin_data = 0.01
+margin_data = 0.025
 cmap_base = plt.colormaps['plasma_r']
 cmap = colors.ListedColormap(cmap_base.colors[int(0.25*len(cmap_base.colors)):])  # Trim lower 25% of colors
 node_color = '#444444'
