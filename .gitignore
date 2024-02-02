@@ -1,10 +1,13 @@
-# Top level directories and files
-/data
-/bin
+# Top-level directories and files
+/bin/
+/data/
+/docs/
+/results/
+/work/
+/.nextflow/
 
-# All directories and files
-docs
-out*
-*.out
-*.log
-__pycache__
+# All folders
+__pycache__/
+
+# All Files
+*.log*
