@@ -15,6 +15,7 @@ effects models or DESeq2, which pool information across samples and/or genes to
 obtain better estimates of key parameters.
 """
 
+import argparse
 import os
 import re
 
@@ -53,66 +54,70 @@ def benjamini_hochberg(pvalues, q):
     return result
 
 
-data_path_read = '../../data/GTEx/bulk_count/'
-data_path_gene = '../protein_coding/out/genes.tsv'
+parser = argparse.ArgumentParser()
+parser.add_argument('gtf_path')
+parser.add_argument('read_path')
 
-# Load gene metadata
-df_gene = pd.read_table(data_path_gene)
-genes_protein = df_gene.loc[df_gene['gene_type'] == 'protein_coding', 'gene_id']
-genes_other = df_gene.loc[df_gene['gene_type'] != 'protein_coding', 'gene_id']
+if __name__ == '__main__':
+    args = parser.parse_args()
 
-# Load mapped reads
-dfs_read = []
-files = sorted([file for file in os.listdir(data_path_read) if file.endswith('.gct.gz')])
-for file in files:
-    # Read in data and transpose to make genes columns
-    df_read = pd.read_table(f'{data_path_read}/{file}', skiprows=2)
-    df_read = df_read.drop('id', axis=1).set_index(['Name', 'Description'])
-    df_read.columns.name = 'Sample'
-    df_read = df_read.transpose()
+    # Load gene metadata
+    df_gene = pd.read_table(args.gtf_path)
+    genes_protein = df_gene.loc[df_gene['gene_type'] == 'protein_coding', 'gene_id']
+    genes_other = df_gene.loc[df_gene['gene_type'] != 'protein_coding', 'gene_id']
 
-    # Add tissue information to index
-    tissue = re.search(tissue_regex, file).group(1)
-    df_read['Tissue'] = tissue
-    df_read = df_read.set_index('Tissue', append=True)
+    # Load mapped reads
+    dfs_read = []
+    files = sorted([file for file in os.listdir(args.read_path) if file.endswith('.gct.gz')])
+    for file in files:
+        # Read in data and transpose to make genes columns
+        df_read = pd.read_table(f'{args.read_path}/{file}', skiprows=2)
+        df_read = df_read.drop('id', axis=1).set_index(['Name', 'Description'])
+        df_read.columns.name = 'Sample'
+        df_read = df_read.transpose()
 
-    # Drop non-protein coding genes
-    df_read = df_read.drop(genes_other, axis=1, level=0)
-    if set(df_read.columns.get_level_values('Name')) != set(genes_protein):
-        print('Warning: gene_ids in read dataframe do not match protein-coding gene_ids.')
+        # Add tissue information to index
+        tissue = re.search(tissue_regex, file).group(1)
+        df_read['Tissue'] = tissue
+        df_read = df_read.set_index('Tissue', append=True)
 
-    dfs_read.append(df_read)
-df_read = pd.concat(dfs_read)
+        # Drop non-protein coding genes
+        df_read = df_read.drop(genes_other, axis=1, level=0)
+        if set(df_read.columns.get_level_values('Name')) != set(genes_protein):
+            print('Warning: gene_ids in read dataframe do not match protein-coding gene_ids.')
 
-# Normalize each tissue by read depth
-total_reads = df_read.sum(axis=1)
-df_read = df_read.mul(1 / total_reads, axis=0)
+        dfs_read.append(df_read)
+    df_read = pd.concat(dfs_read)
 
-prefix = 'out/unpooled/'
-if not os.path.exists(prefix):
-    os.makedirs(prefix)
+    # Normalize each tissue by read depth
+    total_reads = df_read.sum(axis=1)
+    df_read = df_read.mul(1 / total_reads, axis=0)
 
-# Calculate ANOVAs (unpooled)
-samples = [group.to_numpy() for _, group in df_read.groupby(level='Tissue')]
-result = f_oneway(*samples, axis=0)
-df_anova = pd.DataFrame({'fstat': result.statistic, 'pval': result.pvalue}, index=df_read.columns)
-df_anova.to_csv(f'{prefix}/anova.tsv', sep='\t')
+    prefix = 'unpooled/'
+    if not os.path.exists(prefix):
+        os.makedirs(prefix)
 
-prefix = 'out/pooled/'
-if not os.path.exists(prefix):
-    os.makedirs(prefix)
+    # Calculate ANOVAs (unpooled)
+    samples = [group.to_numpy() for _, group in df_read.groupby(level='Tissue')]
+    result = f_oneway(*samples, axis=0)
+    df_anova = pd.DataFrame({'fstat': result.statistic, 'pval': result.pvalue}, index=df_read.columns)
+    df_anova.to_csv(f'{prefix}/anova.tsv', sep='\t')
 
-# Calculate t-tests (pooled)
-index = df_read.index.get_level_values('Tissue') == 'liver'
-sample_a = df_read[index]
-sample_b = df_read[~index]
-result = ttest_ind(sample_a, sample_b, axis=0, equal_var=False, alternative='greater')
-df_ttest = pd.DataFrame({'tstat': result.statistic, 'pval': result.pvalue}, index=df_read.columns)
-df_ttest['BH_result'] = benjamini_hochberg(df_ttest['pval'], q_BH)
-df_ttest.to_csv(f'{prefix}/ttest.tsv', sep='\t')
+    prefix = 'pooled/'
+    if not os.path.exists(prefix):
+        os.makedirs(prefix)
 
-# Subset to liver genes and calculate correlations
-genes_liver = df_ttest[df_ttest['BH_result']].index.get_level_values('Name')
-df_liver = df_read.loc[df_read.index.get_level_values('Tissue') == 'liver', genes_liver]
-df_corr = df_liver.corr()
-df_corr.to_csv(f'{prefix}/corr.tsv', sep='\t')
+    # Calculate t-tests (pooled)
+    index = df_read.index.get_level_values('Tissue') == 'liver'
+    sample_a = df_read[index]
+    sample_b = df_read[~index]
+    result = ttest_ind(sample_a, sample_b, axis=0, equal_var=False, alternative='greater')
+    df_ttest = pd.DataFrame({'tstat': result.statistic, 'pval': result.pvalue}, index=df_read.columns)
+    df_ttest['BH_result'] = benjamini_hochberg(df_ttest['pval'], q_BH)
+    df_ttest.to_csv(f'{prefix}/ttest.tsv', sep='\t')
+
+    # Subset to liver genes and calculate correlations
+    genes_liver = df_ttest[df_ttest['BH_result']].index.get_level_values('Name')
+    df_liver = df_read.loc[df_read.index.get_level_values('Tissue') == 'liver', genes_liver]
+    df_corr = df_liver.corr()
+    df_corr.to_csv(f'{prefix}/corr.tsv', sep='\t')

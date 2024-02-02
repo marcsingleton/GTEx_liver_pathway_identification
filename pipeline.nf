@@ -39,8 +39,29 @@ process exploratory{
     """
 }
 
+process differential_compute{
+    publishDir "$params.output_path/differential/"
+
+    input:
+        path gtf_path
+        path read_path
+
+    output:
+        path "unpooled/anova.tsv"
+        path "pooled/ttest.tsv"
+        path "pooled/corr.tsv"
+
+    script:
+    """
+    python $params.scripts_path/differential_compute.py $gtf_path $read_path
+    """
+}
+
 workflow{
     reference_gtf = Channel.fromPath(params.reference_gtf)
+    GTEx_bulk_count = Channel.fromPath(params.GTEx_bulk_count)
+
     protein_coding_gtf = protein_coding(reference_gtf)
-    exploratory(protein_coding_gtf, Channel.fromPath(params.GTEx_bulk_count))
+    exploratory(protein_coding_gtf, GTEx_bulk_count)
+    differential_compute(protein_coding_gtf, GTEx_bulk_count)
 }
