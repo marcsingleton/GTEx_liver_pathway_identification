@@ -47,9 +47,9 @@ process differential_compute{
         path read_path
 
     output:
-        path "unpooled/anova.tsv"
-        path "pooled/ttest.tsv"
-        path "pooled/corr.tsv"
+        path "unpooled/anova.tsv", emit: anova
+        path "pooled/ttest.tsv", emit: ttest
+        path "pooled/corr.tsv", emit: corr
 
     script:
     """
@@ -57,11 +57,34 @@ process differential_compute{
     """
 }
 
+process differential_plot{
+    publishDir "$params.output_path/differential/"
+
+    input:
+        path anova
+        path ttest
+        path corr
+    
+    output:
+        path "**.png"
+    
+    script:
+    """
+    python $params.scripts_path/differential_plot.py $anova $ttest $corr
+    """
+
+}
+
 workflow{
+    // Make channels from input data paths
     reference_gtf = Channel.fromPath(params.reference_gtf)
     GTEx_bulk_count = Channel.fromPath(params.GTEx_bulk_count)
 
+    // Extract protein coding genes and perform initial exploratory analysis
     protein_coding_gtf = protein_coding(reference_gtf)
     exploratory(protein_coding_gtf, GTEx_bulk_count)
-    differential_compute(protein_coding_gtf, GTEx_bulk_count)
+    
+    // Compute and plot differential gene analysis
+    diff_results = differential_compute(protein_coding_gtf, GTEx_bulk_count)
+    diff_plots = differential_plot(diff_results)
 }
