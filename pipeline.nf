@@ -75,6 +75,22 @@ process differential_plot{
 
 }
 
+process network_compute{
+    publishDir "$params.output_path/network_compute/"
+
+    input:
+        path corr
+    
+    output:
+        path "graph.tsv"
+        path "components.tsv"
+    
+    script:
+    """
+    python $params.scripts_path/network_compute.py $corr
+    """
+}
+
 workflow{
     // Make channels from input data paths
     reference_gtf = Channel.fromPath(params.reference_gtf)
@@ -87,4 +103,7 @@ workflow{
     // Compute and plot differential gene analysis
     diff_results = differential_compute(protein_coding_gtf, GTEx_bulk_count)
     diff_plots = differential_plot(diff_results)
+
+    // Compute and plot network analysis
+    network_results = network_compute(diff_results.corr)
 }
