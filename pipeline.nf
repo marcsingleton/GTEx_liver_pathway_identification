@@ -115,7 +115,7 @@ workflow{
 
     // Extract protein coding genes and perform initial exploratory analysis
     protein_coding_gtf = protein_coding(reference_gtf)
-    exploratory(protein_coding_gtf, GTEx_bulk_count)
+    exploratory_plots = exploratory(protein_coding_gtf, GTEx_bulk_count)
     
     // Compute and plot differential gene analysis
     diff_results = differential_compute(protein_coding_gtf, GTEx_bulk_count)
