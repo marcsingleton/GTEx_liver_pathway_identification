@@ -76,18 +76,35 @@ process differential_plot{
 }
 
 process network_compute{
-    publishDir "$params.output_path/network_compute/"
+    publishDir "$params.output_path/network/"
 
     input:
         path corr
     
     output:
-        path "graph.tsv"
-        path "components.tsv"
+        path "graph.tsv", emit: graph
+        path "components.tsv", emit: components
     
     script:
     """
     python $params.scripts_path/network_compute.py $corr
+    """
+}
+
+process network_plot{
+    publishDir "$params.output_path/network/"
+
+    input:
+        path corr
+        path graph
+        path components
+    
+    output:
+        path "**.png"
+    
+    script:
+    """
+    python $params.scripts_path/network_plot.py $corr $graph $components
     """
 }
 
@@ -106,4 +123,5 @@ workflow{
 
     // Compute and plot network analysis
     network_results = network_compute(diff_results.corr)
+    network_plots = network_plot(diff_results.corr, network_results.graph, network_results.components)
 }
