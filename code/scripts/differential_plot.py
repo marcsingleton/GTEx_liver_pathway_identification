@@ -12,6 +12,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('anova')
 parser.add_argument('ttest')
 parser.add_argument('corr')
+parser.add_argument('-o', '--output_path', default='./')
 
 if __name__ == '__main__':
       args = parser.parse_args()
@@ -20,7 +21,7 @@ if __name__ == '__main__':
       df_ttest = pd.read_table(args.ttest)
       df_corr = pd.read_table(args.corr, header=[0, 1], index_col=[0, 1])
 
-      prefix = 'unpooled/'
+      prefix = f'{args.output_path}/unpooled/'
       if not os.path.exists(prefix):
             os.makedirs(prefix)
 
@@ -51,7 +52,7 @@ if __name__ == '__main__':
       fig.savefig(f'{prefix}/hist|gene_number-Fstat.png')
       plt.close()
 
-      prefix = 'pooled/'
+      prefix = f'{args.output_path}/pooled/'
       if not os.path.exists(prefix):
             os.makedirs(prefix)
 

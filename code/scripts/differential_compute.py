@@ -57,6 +57,7 @@ def benjamini_hochberg(pvalues, q):
 parser = argparse.ArgumentParser()
 parser.add_argument('gtf_path')
 parser.add_argument('read_path')
+parser.add_argument('-o', '--output_path', default='./')
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -93,7 +94,7 @@ if __name__ == '__main__':
     total_reads = df_read.sum(axis=1)
     df_read = df_read.mul(1 / total_reads, axis=0)
 
-    prefix = 'unpooled/'
+    prefix = f'{args.output_path}/unpooled/'
     if not os.path.exists(prefix):
         os.makedirs(prefix)
 
@@ -103,7 +104,7 @@ if __name__ == '__main__':
     df_anova = pd.DataFrame({'fstat': result.statistic, 'pval': result.pvalue}, index=df_read.columns)
     df_anova.to_csv(f'{prefix}/anova.tsv', sep='\t')
 
-    prefix = 'pooled/'
+    prefix = f'{args.output_path}/pooled/'
     if not os.path.exists(prefix):
         os.makedirs(prefix)
 

@@ -41,6 +41,7 @@ def get_connected_components(graph):
 
 parser = argparse.ArgumentParser()
 parser.add_argument('corr')
+parser.add_argument('-o', '--output_path', default='./')
 
 top_N = 4
 
@@ -88,12 +89,16 @@ if __name__ == '__main__':
     components = get_connected_components(graph)
 
     # Save results
-    with open('graph.tsv', 'w') as file:
+    prefix = args.output_path
+    if not os.path.exists(prefix):
+        os.makedirs(prefix)
+
+    with open(f'{prefix}/graph.tsv', 'w') as file:
         file.write('node\tadjacent\n')
         for node, adjacents in graph.items():
             file.write(f'{node}\t{",".join(adjacents)}\n')
 
-    with open('components.tsv', 'w') as file:
+    with open(f'{prefix}/components.tsv', 'w') as file:
         file.write('component_id\tgene_ids\n')
         for component_id, component in enumerate(components):
             file.write(f'{component_id:06}\t{",".join(component)}\n')

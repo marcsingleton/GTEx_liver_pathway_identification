@@ -1,10 +1,12 @@
 """Identify protein coding genes from GTF reference file for GTEx."""
 
 import argparse
+import os
 from collections import namedtuple
 
 parser = argparse.ArgumentParser(prog=__file__, description=__doc__)
 parser.add_argument('gtf_path')
+parser.add_argument('-o', '--output_path', default='./')
 
 GTF_fields = ['seqname', 'source', 'feature',
               'start', 'end',
@@ -36,7 +38,11 @@ if __name__ == '__main__':
 
             records.append(OutputRecord(*[attributes[field_name] for field_name in output_fields]))
 
-    with open('genes.tsv', 'w') as file:
+    prefix = args.output_path
+    if not os.path.exists(prefix):
+        os.makedirs(prefix)
+
+    with open(f'{prefix}/genes.tsv', 'w') as file:
         file.write('\t'.join(output_fields) + '\n')
         for record in records:
             file.write('\t'.join(record) + '\n')

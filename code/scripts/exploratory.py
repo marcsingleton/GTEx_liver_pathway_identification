@@ -18,6 +18,7 @@ from src.constants import tissue_regex
 parser = argparse.ArgumentParser()
 parser.add_argument('gtf_path')
 parser.add_argument('read_path')
+parser.add_argument('-o', '--output_path', default='./')
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -50,6 +51,10 @@ if __name__ == '__main__':
         dfs_read.append(df_read)
     df_read = pd.concat(dfs_read)
 
+    prefix = args.output_path
+    if not os.path.exists(prefix):
+        os.makedirs(prefix)
+
     # Bar graph of number of samples for each tissue type
     counts = df_read.groupby(level='Tissue').size()
     xs = list(range(len(counts)))
@@ -60,7 +65,7 @@ if __name__ == '__main__':
     ax.bar(xs, ys)
     ax.set_xticks(xs, labels, rotation=45, horizontalalignment='right', fontsize=8)
     ax.set_ylabel('Number of samples')
-    fig.savefig('bar|sample_number-tissue.png')
+    fig.savefig(f'{prefix}/bar|sample_number-tissue.png')
     plt.close()
 
     # Bar graph of mean number of reads by tissue
@@ -73,7 +78,7 @@ if __name__ == '__main__':
     ax.bar(xs, ys)
     ax.set_xticks(xs, labels, rotation=45, horizontalalignment='right', fontsize=8)
     ax.set_ylabel('Mean reads in samples')
-    fig.savefig('bar|reads_mean-tissue.png')
+    fig.savefig(f'{prefix}/bar|reads_mean-tissue.png')
     plt.close()
 
     # Bar graph of number of unique donors by tissue
@@ -88,7 +93,7 @@ if __name__ == '__main__':
     ax.bar(xs, ys)
     ax.set_xticks(xs, labels, rotation=45, horizontalalignment='right', fontsize=8)
     ax.set_ylabel('Number of unique donors')
-    fig.savefig('bar|donor_number-tissue.png')
+    fig.savefig(f'{prefix}/bar|donor_number-tissue.png')
     plt.close()
 
     # Violin plot of reads by tissue
@@ -100,7 +105,7 @@ if __name__ == '__main__':
     ax.violinplot(arrays, positions=positions, showmedians=True)
     ax.set_xticks(positions, labels, rotation=45, horizontalalignment='right', fontsize=8)
     ax.set_ylabel('Number of reads in sample')
-    fig.savefig('violin|reads-tissue.png')
+    fig.savefig(f'{prefix}/violin|reads-tissue.png')
     plt.close()
 
     # Histogram plot of gene count z-scores by tissue
@@ -120,7 +125,7 @@ if __name__ == '__main__':
         ax.set_title(label, fontsize=8)
     fig.supxlabel('$z$-score of reads to gene in tissue and gene group', fontsize=10)
     fig.supylabel('Number of genes', fontsize=10)
-    fig.savefig('hist|gene_number-zscore.png')
+    fig.savefig(f'{prefix}/hist|gene_number-zscore.png')
     plt.close()
 
     # PCA plots of samples with gene counts as features
@@ -136,7 +141,7 @@ if __name__ == '__main__':
     ax.set_xlabel('PC1')
     ax.set_ylabel('PC2')
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=8, markerscale=2)
-    fig.savefig('scatter|PC1-PC2.png')
+    fig.savefig(f'{prefix}/scatter|PC1-PC2.png')
     plt.close()
 
     fig, ax = plt.subplots(gridspec_kw={'right': 0.7})
@@ -146,7 +151,7 @@ if __name__ == '__main__':
     ax.set_xlabel('PC2')
     ax.set_ylabel('PC3')
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=8, markerscale=2)
-    fig.savefig('scatter|PC2-PC3.png')
+    fig.savefig(f'{prefix}/scatter|PC2-PC3.png')
     plt.close()
 
     # Bar graph of explained variance ratio
@@ -157,5 +162,5 @@ if __name__ == '__main__':
     ax.bar(xs, ys)
     ax.set_xlabel('PC')
     ax.set_ylabel('Explained variance ratio')
-    fig.savefig('bar|scree.png')
+    fig.savefig(f'{prefix}/bar|scree.png')
     plt.close()

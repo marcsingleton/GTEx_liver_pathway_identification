@@ -14,6 +14,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('corr')
 parser.add_argument('graph')
 parser.add_argument('components')
+parser.add_argument('-o', '--output_path', default='./')
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -73,7 +74,7 @@ if __name__ == '__main__':
     edge_slope = 10
     edge_intercept = 0.75
 
-    prefix = 'networks/'
+    prefix = f'{args.output_path}/networks/'
     if not os.path.exists(prefix):
         os.makedirs(prefix)
 
