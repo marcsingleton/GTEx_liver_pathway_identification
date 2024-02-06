@@ -50,6 +50,10 @@ if __name__ == '__main__':
                         'edge_num': sum([len(graph[gene_id]) for gene_id in gene_ids])})
     df = pd.DataFrame(records)
 
+    prefix = args.output_path
+    if not os.path.exists(prefix):
+        os.makedirs(prefix)
+
     # Bar graph of number of genes in components
     counts = df['gene_num'].value_counts()
 
@@ -57,10 +61,14 @@ if __name__ == '__main__':
     ax.bar(counts.index, counts.values, width=1)
     ax.set_xlabel('Number of genes in component')
     ax.set_ylabel('Number of components')
-    fig.savefig('bar|component_number-gene_number.png')
+    fig.savefig(f'{prefix}/bar|component_number-gene_number.png')
     ax.set_yscale('log')
-    fig.savefig('bar|component_number-gene_number|log.png')
+    fig.savefig(f'{prefix}/bar|component_number-gene_number|log.png')
     plt.close()
+
+    prefix = f'{args.output_path}/networks/'
+    if not os.path.exists(prefix):
+        os.makedirs(prefix)
 
     # Plot n largest components
     n = 10
@@ -73,10 +81,6 @@ if __name__ == '__main__':
     node_intercept = 1
     edge_slope = 10
     edge_intercept = 0.75
-
-    prefix = f'{args.output_path}/networks/'
-    if not os.path.exists(prefix):
-        os.makedirs(prefix)
 
     component_ids = df.sort_values(by='gene_num', ascending=False, ignore_index=True).loc[:n, 'component_id']
     for rank, component_id in enumerate(component_ids):
