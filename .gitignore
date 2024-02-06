@@ -5,6 +5,9 @@
 /results/
 /work/
 /.nextflow/
+/.snakemake/
+/results_nf/
+/results_smk/
 
 # All folders
 __pycache__/
