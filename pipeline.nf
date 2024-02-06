@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 // IO paths
-params.output_path = "$projectDir/results/"
+params.output_path = "$projectDir/results_nf/"
 params.scripts_path = "$projectDir/code/scripts/"
 
 // Data paths
