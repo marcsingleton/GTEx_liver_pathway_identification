@@ -1,6 +1,6 @@
 # IO paths
-output_path = 'results_smk/'
-scripts_path = 'code/scripts/'
+output_path = 'results_smk'
+scripts_path = 'code/scripts'
 
 # Data paths
 reference_gtf = 'data/GTEx/gene_model/references_v8_gencode.v26.GRCh38.genes.gtf'
