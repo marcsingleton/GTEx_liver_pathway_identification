@@ -30,12 +30,14 @@ The project is organized into the following hierarchy:
 
 ```
 GTEx_liver_pathway/
-  ├── analysis/
-  ├── bin/
+  ├── code/
+  │   └── scripts/
+  │   └── src/
   ├── data/
-  │     └── GTEx/
-  │           ├── bulk_count/
-  │           ├── bulk_TPM/
-  │           └── gene_model/
-  └── src/
+  │   └── GTEx/
+  │       ├── bulk_count/
+  │       ├── bulk_TPM/
+  │       └── gene_model/
+  ├── docs/
+  └── results/
 ```
