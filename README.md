@@ -1,4 +1,4 @@
-# GTEx Liver Pathway Analysis
+# GTEx Liver Pathway Identification
 
 This is a small analysis I did as part of a technical assessment for computational biologist role. The goal was to identify biological pathways or processes specific to the liver using the GTEx bulk RNA-seq data using only protein-coding genes and the following
 tissues:
@@ -29,7 +29,7 @@ can generate hypotheses of their biological function. In more detail:
 The project is organized into the following hierarchy:
 
 ```
-GTEx_liver_pathway/
+GTEx_liver_pathway_identification/
   ├── code/
   │   └── scripts/
   │   └── src/
